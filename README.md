@@ -55,7 +55,7 @@ https://www.kaggle.com/datasets/sacramentotechnology/sleep-deprivation-and-cogni
 
 ## Software
 
-Analyses will be conducted in R using RStudio.
+Analyses are conducted in R using RStudio.
 
 ## Project Positioning
 
