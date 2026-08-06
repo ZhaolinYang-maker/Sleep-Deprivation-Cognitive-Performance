@@ -36,7 +36,7 @@ separately.
 
 ## Project Overview
 
-[Read the Project Overview and Analysis Plan](./Project1_Overview_Plan.pdf)
+[Read the Project Overview and Analysis Plan](https://github.com/ZhaolinYang-maker/Sleep-Deprivation-Cognitive-Performance/blob/main/Project1_Overview_Plan.pdf)
 
 ## Planned Statistical Methods
 
