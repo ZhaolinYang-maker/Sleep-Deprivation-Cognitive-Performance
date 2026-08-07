@@ -7,6 +7,11 @@ install.packages("qqplotr")
 library(qqplotr)
 install.packages("psych")
 library(psych)
+install.packages("lmtest")
+library(lmtest)
+install.packages("car")
+library(car)
+
 
 #=====================================================================================================================
 # MODULE1: Dataset Overview and Descriptive Statistics
@@ -74,14 +79,15 @@ data$Stress_Group <- factor(data$Stress_Group,
 # In other words, regression assumptions are examined for each fitted model rather than for the dataset as a whole.
 
 #This module defines reusable diagnostic functions so that the same checks can be consistently and conveniently applied to each model in the linear analysis
-#As discussed in project overview, particular attention will be given to (1) approximate normality of errors; (2) Linearity of relationship between predictors and outcome (3)homoscedasticity (homogenity of variance of outcome variable)
+#As discussed in project overview, particular attention will be given to (1) approximate normality of errors; (2) Linearity of relationship between predictors and outcome (3)homoscedasticity (homogeneity of variance of outcome variable)
 # (4) influential observations (e.g., outliers in sample) and (5) multi-collinearity among predictors incorporated in multiple linear regression. 
-# Notice, autocorrelation which may infleunce uncertainity of estiamtion is not explcitly checked here since the authors state that the observations are measured independently
+# Notice, autocorrelation which may influence uncertainty of estimation is not explicitly checked here since the authors state that the observations are measured independently
 
+#---------------------------------------------------------------
 # CHECK 1: Diagnostics of Approximate Normality of Errors
 # Because the OLS coefficient estimator is a linear function of the model errors, approximate normality of errors supports an approximately normal sampling distribution of coefficient estimates and therefore conventional t- and F-based inference.
+# Therefore, normality of errors mainly supports the validity of conventional hypothesis testing based on t and F distributions,especially in small samples because in large sample, CLT can compensate
 # QQ plot and the Shapiro-Wilk test (S-W test) will be used for checking the assumption
-
 Residuals_Normality <- function(model){
   Residuals_Model <- residuals(model) # Inset any linear regression model, the functions automatically compute its residuals for later calculations if applicable
   par(mfrow = c(1,2))
@@ -100,14 +106,15 @@ Residuals_Normality <- function(model){
        qqline(Residuals_Model,
          col = "red"
          )
-
        print(shapiro.test(Residuals_Model)) #S-W test for statistically testing normality of residuals where H0 = no violation of normality of errors
 } # As expected, once model is constructed and inserted into the fucntion, hitogram of residuals, Q-Q plot of residuals and result of S-W test should be delivered. 
 #Based on the result, deciding whether the assumption of normality of errors is violated or not visually and statistically. Remedy (e.g., log-transformation is then required if there is violation)
 
+#---------------------------------------------------------------
 #CHECK2 Linearity of Relationship between Predictors and Outcome 
-#Because the linear regression model presumes that conditional expectations of outcome given predcitors can be expressed by a linear function, if the assumption is violated, the inference and estimation are risky to be invalid and meaningless
-#Scatterplot (fitted values VS. residuals) visual inspeection can be used for checking the assumption. Notice, the scatterplot can also partially provide certain evidence that whether the assumption of Homoscedasticity is violated visually
+# Because the linear regression model presumes that conditional expectations of outcome given predictors can be expressed by a linear function, 
+# Thereforem the inference and estimation are risky to be invalid and meaningless if the assumtpion is violated
+#Scatterplot (fitted values VS. residuals) visual inspection can be used for checking the assumption. Notice, the scatterplot can also partially provide certain evidence that whether the assumption of Homoscedasticity is violated visually
 
 Linearity_Relationship <- function(model){
   plot(fitted(model),
@@ -116,9 +123,45 @@ Linearity_Relationship <- function(model){
        ylab = "Residuals",
        main = "Residuals VS Fitted Values")
 } #If a random fluctuation of residuals without visually obvious curvature or pattern are observed, it provides no obvious evidence that the linear relationship between predictors and outcome variables is violated
-#Additionally, if the dispersion of residuals show no visually obvious cahnge across fitted values (e.g., cone shape of residuals), it may visually provides no obvious evidence that the assumption of homoscedasticity is violated
+#Additionally, if the dispersion of residuals shows no visually obvious cahnge across fitted values (e.g., cone shape of residuals), it may visually provides no obvious evidence that the assumption of homoscedasticity is violated
 
-#HCECK3 Homoscedasticity Homogenity of Variance of Outcome Varaibles)
+#---------------------------------------------------------------
+# CHECK3 Homoscedasticity Homogeneity of Variance of Outcome Variables)
+# Because the OLS coefficient estimator is a linear function of the model errors, satisfaction of homoscedasticity provides accurate reflection of sample statistics uncertainty in conventional sampling distribution
+# Therefore, the estimation and inference will be possibly untrustworthy
+# Scatterplot (fitted values VS residual values) provides a visual inspection way for diagnosis of the assumption. Breusch-Pagan test (B-P test) provides a statistical way for diagnosis of the asssumption
+
+Homoscedasticity_Checking <- function(model){
+  print(bptest(model)) #B-P test states H) as satisfaction of homoscedasticity; small P-value therefore suggests heteroscedasticity of errors
+} # NOTICE: Considering the LLN, the statistical examination is suggested to be conducted as a supportive diagnosis in small sample
+
+#---------------------------------------------------------------
+# CHECK4 Potential influential Observations (outliers)
+# Outliers showing substantial deviation influences variance of residuals and calculation of coefficients, potentially leading to more frequent typeII error
+# Cook's distance measures the influence of each observation on the regression equation. 
+
+Outlier_Checking <- function(model){
+  cd <- cook_distance(model)
+  plot(cd,
+       type = "h",
+       main = "Cook's Distance",
+       xlab = "Observations",
+       ylab = "Cook's Distance")
+} # The plot shwos each observation's Cook's distances. When observing values with apparently substantial different, potential serious outliers may be implied
+
+#---------------------------------------------------------------
+# CHECK 5 Multicollinearity
+# A high Multicollinearity among variables suggesting a high intrinsically high relationship among predictors makes it difficult to isolate each predictor's individual effect
+# Therefore, the violation leads to more noise in coefficeint calculation with increased estimation uncertainty despite possibly well predictive accuracy
+# NOTICE: multicollinearity is only checked when there is two or more predictors incorporated into the model. 
+
+Multicollinearity_Checking <- function(model){ # Use hte function when model includes at least two predictors
+  VIF_Scores <- vif(model) #VIF. When VIF > 10, a problem of multicollinearity is possibly implied
+  Tolerance <- 1/vif(model) #Tolerance; Reciprocal of VIF. When tolerance < 0.1, a problem of multicollinearity is possibly implied
+  VIF_and_Tolerance <- cbind(VIF_Scores = VIF_Scores,
+                             Tolerance = Tolerance)
+  round(VIF_and_Tolerance, 5)
+}
 
 
 
