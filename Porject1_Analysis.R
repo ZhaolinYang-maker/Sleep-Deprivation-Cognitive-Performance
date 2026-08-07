@@ -75,7 +75,8 @@ data$Stress_Group <- factor(data$Stress_Group,
 
 #This module defines reusable diagnostic functions so that the same checks can be consistently and conveniently applied to each model in the linear analysis
 #As discussed in project overview, particular attention will be given to (1) approximate normality of errors; (2) Linearity of relationship between predictors and outcome (3)homoscedasticity (homogenity of variance of outcome variable)
-# (4) influential observations (e.g., outliers in sample) and (5) multi-collinearity among predictors incorporated in multiple linear regression 
+# (4) influential observations (e.g., outliers in sample) and (5) multi-collinearity among predictors incorporated in multiple linear regression. 
+# Notice, autocorrelation which may infleunce uncertainity of estiamtion is not explcitly checked here since the authors state that the observations are measured independently
 
 # CHECK 1: Diagnostics of Approximate Normality of Errors
 # Because the OLS coefficient estimator is a linear function of the model errors, approximate normality of errors supports an approximately normal sampling distribution of coefficient estimates and therefore conventional t- and F-based inference.
@@ -101,8 +102,26 @@ Residuals_Normality <- function(model){
          )
 
        print(shapiro.test(Residuals_Model)) #S-W test for statistically testing normality of residuals where H0 = no violation of normality of errors
-} # Expectedly, once model is constructed and inserted into the fucntion, hitogram of residuals, Q-Q plot of residuals and result of S-W test should be delivered. 
-#Based on the result, deicding whether the assumption of normality of errors is violated or not visually and statistically. Remedy is then required if there is violation
+} # As expected, once model is constructed and inserted into the fucntion, hitogram of residuals, Q-Q plot of residuals and result of S-W test should be delivered. 
+#Based on the result, deciding whether the assumption of normality of errors is violated or not visually and statistically. Remedy (e.g., log-transformation is then required if there is violation)
+
+#CHECK2 Linearity of Relationship between Predictors and Outcome 
+#Because the linear regression model presumes that conditional expectations of outcome given predcitors can be expressed by a linear function, if the assumption is violated, the inference and estimation are risky to be invalid and meaningless
+#Scatterplot (fitted values VS. residuals) visual inspeection can be used for checking the assumption. Notice, the scatterplot can also partially provide certain evidence that whether the assumption of Homoscedasticity is violated visually
+
+Linearity_Relationship <- function(model){
+  plot(fitted(model),
+       residuals(model),
+       xlab = "Fitted Values",
+       ylab = "Residuals",
+       main = "Residuals VS Fitted Values")
+} #If a random fluctuation of residuals without visually obvious curvature or pattern are observed, it provides no obvious evidence that the linear relationship between predictors and outcome variables is violated
+#Additionally, if the dispersion of residuals show no visually obvious cahnge across fitted values (e.g., cone shape of residuals), it may visually provides no obvious evidence that the assumption of homoscedasticity is violated
+
+#HCECK3 Homoscedasticity Homogenity of Variance of Outcome Varaibles)
+
+
+
 
 
 
